@@ -58,20 +58,22 @@ var Main = /** @class */ (function () {
         // assign properties
         this.canvasWidth = window.screen.width;
         this.canvasHeight = window.screen.height;
-        this.lineColor = "#00D3FF";
+        this.lineColor = "rgb(0,211,255)";
         this.gridColor = "rgba(255,255,255,0.04)";
         this.gridThickness = "1px";
         this.shadowColor = "#00D3FF";
         this.shadowProperties = "0px 0px 16px";
         // this.backgroundColor = "#111E2E";
         this.backgroundColor = "rgb(17,30,46)";
+        this.backgroundChartColor = "rgb(0,211,255, 0.1)";
+        this.currensyId = "ripple";
         this.vsCurrensy = "usd";
         this.from = 1613422800;
         this.to = 1613672582;
     }
     Main.prototype.startApplication = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var drawCanvas, chartData, drawGrid;
+            var drawCanvas, chartData, chart;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, new DrawCanvas()];
@@ -80,9 +82,9 @@ var Main = /** @class */ (function () {
                         return [4 /*yield*/, new Transformdata().transform()];
                     case 2:
                         chartData = _a.sent();
-                        return [4 /*yield*/, new DrawGrid(chartData).draw()];
+                        return [4 /*yield*/, new Chart(chartData).draw()];
                     case 3:
-                        drawGrid = _a.sent();
+                        chart = _a.sent();
                         return [2 /*return*/];
                 }
             });
@@ -117,7 +119,7 @@ var Transformdata = /** @class */ (function (_super) {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        query = new HTTP("https://api.coingecko.com/api/v3/coins/bitcoin/market_chart/range?vs_currency=usd&from=" + this.from + "&to=" + this.to);
+                        query = new HTTP("https://api.coingecko.com/api/v3/coins/" + this.currensyId + "/market_chart/range?vs_currency=" + this.vsCurrensy + "&from=" + this.from + "&to=" + this.to);
                         return [4 /*yield*/, query.send()];
                     case 1:
                         data = _a.sent();
@@ -132,7 +134,7 @@ var Transformdata = /** @class */ (function (_super) {
                             };
                             chartData[i] = chartDataItem;
                         }
-                        console.log(chartData);
+                        // console.log(chartData);
                         return [2 /*return*/, chartData];
                 }
             });
@@ -140,37 +142,105 @@ var Transformdata = /** @class */ (function (_super) {
     };
     return Transformdata;
 }(Main));
-// create grid 
-var DrawGrid = /** @class */ (function (_super) {
-    __extends(DrawGrid, _super);
-    function DrawGrid(chartData) {
+// drawing chart
+var Chart = /** @class */ (function (_super) {
+    __extends(Chart, _super);
+    function Chart(chartData) {
         var _this = _super.call(this) || this;
         _this.chartData = chartData;
+        _this.timestampMargin = _this.canvasWidth / Object.keys(_this.chartData).length;
+        _this.valueMargin = _this.canvasHeight / Object.keys(_this.chartData).length;
+        _this.chartDataLength = Object.keys(_this.chartData).length;
         return _this;
     }
-    DrawGrid.prototype.draw = function () {
-        console.log(this.chartData);
-        var timestampMargin = this.canvasWidth / Object.keys(this.chartData).length;
-        var chartDataLength = Object.keys(this.chartData).length;
-        for (var i = 0; i < chartDataLength; i++) {
+    Chart.prototype.draw = function () {
+        var grid = new Grid(this.chartData, this.vsCurrensy, this.from, this.to);
+        grid.draw();
+        var graph = new Graph(this.chartData);
+        graph.draw();
+    };
+    return Chart;
+}(Main));
+// drawing grid in chart
+var Grid = /** @class */ (function (_super) {
+    __extends(Grid, _super);
+    function Grid(chartData, vsCurrensy, from, to) {
+        var _this = _super.call(this, chartData) || this;
+        _this.vsCurrensy = vsCurrensy;
+        _this.from = from;
+        _this.to = to;
+        return _this;
+    }
+    Grid.prototype.draw = function () {
+        // console.log(this.chartData);
+        for (var i = 0; i < this.chartDataLength; i++) {
+            // vertival
             this.ctx.beginPath();
-            this.ctx.moveTo(i * timestampMargin, 0);
-            this.ctx.lineTo(i * timestampMargin, this.canvasHeight);
+            this.ctx.moveTo(i * this.timestampMargin, 0);
+            this.ctx.lineTo(i * this.timestampMargin, this.canvasHeight);
             this.ctx.strokeStyle = this.gridColor;
             this.ctx.lineWidth = this.gridThickness;
-            this.ctx.fillText(this.chartData[i].timestamp, i * timestampMargin, this.canvasHeight - 30);
+            this.ctx.fillText(this.chartData[i].timestamp, i * this.timestampMargin, this.canvasHeight - 30);
+            this.ctx.stroke();
+            // horizontal
+            this.ctx.beginPath();
+            this.ctx.moveTo(0, this.valueMargin * i);
+            this.ctx.lineTo(this.canvasWidth, this.valueMargin * i);
+            this.ctx.strokeStyle = this.gridColor;
+            this.ctx.lineWidth = this.gridThickness;
+            this.ctx.fillText(this.chartData[i].value, 20, i * this.valueMargin);
             this.ctx.stroke();
         }
     };
-    return DrawGrid;
-}(Main));
-var DrawChart = /** @class */ (function (_super) {
-    __extends(DrawChart, _super);
-    function DrawChart() {
-        return _super.call(this) || this;
+    return Grid;
+}(Chart));
+// drawing line chart
+var Graph = /** @class */ (function (_super) {
+    __extends(Graph, _super);
+    function Graph(chartData) {
+        var _this = _super.call(this, chartData) || this;
+        _this.chartData = chartData;
+        return _this;
     }
-    return DrawChart;
-}(Main));
+    Graph.prototype.draw = function () {
+        for (var i = 0; i < this.chartDataLength; i++) {
+            this.ctx.beginPath();
+            if (i == 0) {
+                continue;
+            }
+            var coordinate_1 = {
+                x: i * this.timestampMargin,
+                y: (this.chartData[i].value * 100) * this.valueMargin
+            };
+            var coordinate_2 = {
+                x: (i - 1) * this.timestampMargin,
+                y: (this.chartData[i - 1].value * 100) * this.valueMargin
+            };
+            var coordinates = {
+                0: coordinate_1,
+                1: coordinate_2
+            };
+            this.ctx.moveTo(coordinates[0].x, coordinates[0].y);
+            this.ctx.lineTo(coordinates[1].x, coordinates[1].y);
+            this.ctx.strokeStyle = this.lineColor;
+            this.ctx.stroke();
+            this.drawBackGround(coordinates);
+        }
+    };
+    // dtaw background in chart
+    Graph.prototype.drawBackGround = function (coordinates) {
+        this.ctx.beginPath();
+        this.ctx.moveTo(coordinates[0].x, coordinates[0].y);
+        this.ctx.lineTo(coordinates[1].x, coordinates[1].y);
+        this.ctx.lineTo(coordinates[1].x, 0);
+        this.ctx.lineTo(coordinates[0].x, 0);
+        this.ctx.lineTo(coordinates[0].x, coordinates[0].y);
+        this.ctx.fillStyle = this.backgroundChartColor;
+        this.ctx.fill();
+    };
+    return Graph;
+}(Chart));
+// http request to API coigeeko
 var HTTP = /** @class */ (function () {
     function HTTP(url, method, data) {
         if (method === void 0) { method = "GET"; }
@@ -190,9 +260,7 @@ var HTTP = /** @class */ (function () {
             var response, data;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0:
-                        console.log(this.options);
-                        return [4 /*yield*/, fetch(this.url, this.options)];
+                    case 0: return [4 /*yield*/, fetch(this.url, this.options)];
                     case 1:
                         response = _a.sent();
                         return [4 /*yield*/, response.json()];
