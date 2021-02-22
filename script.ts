@@ -14,6 +14,7 @@ class Main {
      protected readonly gridColor: string;
      protected readonly gridThickness: string;
      protected readonly backgroundChartColor: string;
+     protected readonly lineShadow: any;
 
      // query parameters
      protected readonly currensyId: string;
@@ -37,20 +38,26 @@ class Main {
           this.shadowProperties = "0px 0px 16px";
           // this.backgroundColor = "#111E2E";
           this.backgroundColor = "rgb(17,30,46)";
-          this.backgroundChartColor = "rgb(0,211,255, 0.1)";
+          this.backgroundChartColor = "rgb(0,211,255, 0.04)";
+          this.lineShadow = {
+               shadowOffsetX: 0,
+               shadowOffsetY: 0,
+               shadowBlur: 16,
+               shadowColor: "#00D3FF"
+          }
 
           this.currensyId = "ripple";
           this.vsCurrensy = "usd";
-          this.from = 1613422800;
-          this.to = 1613672582;
+          this.from = 1392577232;
+          this.to = 1422577232;
 
      }
 
      async startApplication() {
           const drawCanvas = await new DrawCanvas();
-          const chartData = await new Transformdata().transform();
+          const chartData = await new TransformData().transform();
+          // console.log(chartData);
           const chart = await new Chart(chartData).draw();
-
      }
 }
 
@@ -67,8 +74,6 @@ class DrawCanvas extends Main {
      }
 }
 
-
-
 type ChartDataItem = {
      timestamp: string,
      value: number
@@ -79,7 +84,7 @@ type ChartData = {
 }
 
 // transforming http response
-class Transformdata extends Main {
+class TransformData extends Main {
      constructor() {
           super();
      }
@@ -120,6 +125,8 @@ class Chart extends Main implements Chart  {
      protected timestampMargin: number;
      protected valueMargin: number;
      protected chartDataLength: number;
+     protected maximalValue: number;
+     protected minimalValue: number;
 
      chartData: ChartData;
 
@@ -129,13 +136,26 @@ class Chart extends Main implements Chart  {
           this.timestampMargin = this.canvasWidth / Object.keys(this.chartData).length
           this.valueMargin = this.canvasHeight / Object.keys(this.chartData).length;
           this.chartDataLength = Object.keys(this.chartData).length;
+          this.minimalValue = 999999999999999999999999999999999999999999999999999999999999;
+          this.maximalValue = 0
+
+          for (let i = 0; i < this.chartDataLength; i++) {
+               if (this.chartData[i].value > this.maximalValue) {
+                    this.maximalValue = this.chartData[i].value;
+               }
+               if (this.chartData[i].value < this.minimalValue) {
+                    this.minimalValue = this.chartData[i].value;
+               }
+          }
      }
 
-     draw() {
+     draw(): void {
+          console.log(this.valueMargin);
           const grid = new Grid(this.chartData, this.vsCurrensy, this.from, this.to);
           grid.draw();
           const graph = new Graph(this.chartData);
           graph.draw();
+          const cursor = new Cursor(this.chartData).watch();
      }
 }
 
@@ -159,26 +179,31 @@ class Grid extends Chart implements DrawGrid {
      }
 
      draw(): void {
-          for (let i = 0; i < this.chartDataLength; i++) {
 
-               // vertival
-               this.ctx.beginPath();
-               this.ctx.moveTo(i * this.timestampMargin, 0);   
-               this.ctx.lineTo(i * this.timestampMargin, this.canvasHeight);  
-               this.ctx.strokeStyle = this.gridColor;
-               this.ctx.lineWidth = this.gridThickness;
-               this.ctx.fillText(this.chartData[i].timestamp, i * this.timestampMargin, this.canvasHeight - 30);
-               this.ctx.stroke();       
+          console.log(`minimal value: ${this.minimalValue}; maximal value: ${this.maximalValue}`);
+          
 
-               // horizontal
-               this.ctx.beginPath();
-               this.ctx.moveTo(0, this.valueMargin * i);   
-               this.ctx.lineTo(this.canvasWidth, this.valueMargin * i);  
-               this.ctx.strokeStyle = this.gridColor;
-               this.ctx.lineWidth = this.gridThickness;
-               this.ctx.fillText(this.chartData[i].value, 20 , i * this.valueMargin);
-               this.ctx.stroke();       
-          }
+          // for (let i = 0; i < this.chartDataLength; i++) {
+
+
+          //      // vertival
+          //      this.ctx.beginPath();
+          //      this.ctx.moveTo(i * this.timestampMargin, 0);   
+          //      this.ctx.lineTo(i * this.timestampMargin, this.canvasHeight);  
+          //      this.ctx.strokeStyle = this.gridColor;
+          //      this.ctx.lineWidth = this.gridThickness;
+          //      this.ctx.fillText(this.chartData[i].timestamp, i * this.timestampMargin, this.canvasHeight - 30);
+          //      this.ctx.stroke();       
+
+          //      // horizontal
+          //      this.ctx.beginPath();
+          //      this.ctx.moveTo(0, this.valueMargin * i);   
+          //      this.ctx.lineTo(this.canvasWidth, this.valueMargin * i);  
+          //      this.ctx.strokeStyle = this.gridColor;
+          //      this.ctx.lineWidth = this.gridThickness;
+          //      this.ctx.fillText(this.chartData[i].value, 20 , i * this.valueMargin);
+          //      this.ctx.stroke();       
+          // }
      }
 }
 
@@ -212,26 +237,36 @@ class Graph extends Chart {
 
                const coordinate_1: Coordinate = {
                     x: i * this.timestampMargin,
-                    y: (this.chartData[i].value * 100) * this.valueMargin
+                    y: this.canvasHeight - (this.chartData[i].value) / (this.maximalValue) * (this.canvasHeight),
                }
 
                const coordinate_2: Coordinate = {
                     x: (i - 1) * this.timestampMargin,
-                    y: (this.chartData[i - 1].value * 100) * this.valueMargin
+                    y: this.canvasHeight - (this.chartData[i - 1].value) / (this.maximalValue) * (this.canvasHeight),
                }
-               
+
                const coordinates: Coordinates = {
                     0: coordinate_1,
                     1: coordinate_2
                }
 
+               console.log((this.chartData[i].value) / (this.maximalValue));
                
 
+               // lines 
+               this.ctx.shadowBlur = this.lineShadow.shadowBlur;;
+               this.ctx.shadowOffsetX = this.lineShadow.shadowOffsetX;
+               this.ctx.shadowOffsetY = this.lineShadow.shadowOffsetY;
+               this.ctx.shadowColor = this.lineShadow.shadowColor;
                this.ctx.moveTo(coordinates[0].x, coordinates[0].y);
+               this.ctx.lineWidth = 1.4;
+               this.ctx.translate(0, 0);
+               this.ctx.lineCap = "round";
                this.ctx.lineTo(coordinates[1].x, coordinates[1].y);
-
                this.ctx.strokeStyle = this.lineColor;
                this.ctx.stroke();
+
+               // background
                this.drawBackGround(coordinates);
           }
      }
@@ -241,11 +276,38 @@ class Graph extends Chart {
           this.ctx.beginPath();
           this.ctx.moveTo(coordinates[0].x, coordinates[0].y);
           this.ctx.lineTo(coordinates[1].x, coordinates[1].y);
-          this.ctx.lineTo(coordinates[1].x, 0);
-          this.ctx.lineTo(coordinates[0].x, 0);
+          this.ctx.lineTo(coordinates[1].x, this.canvasHeight);
+          this.ctx.lineTo(coordinates[0].x, this.canvasHeight);
           this.ctx.lineTo(coordinates[0].x, coordinates[0].y);
           this.ctx.fillStyle = this.backgroundChartColor;
           this.ctx.fill();
+     }
+}
+
+interface Cursor {
+     positionX: number
+     positionY: number,
+}
+
+class Cursor extends Chart implements Cursor {
+     public positionX: number;
+     public positionY: number;
+     public chartData: ChartData;
+     
+     constructor(chartData: ChartData) {
+          super(chartData);
+          this.chartData = chartData;
+          this.positionX = -200;
+          this.positionY = -200;
+     }
+
+     watch(): void {
+          this.canvas.addEventListener("mousemove", (event: any) => {
+               this.positionX = event.offsetX;
+               this.positionY = event.offsetY;
+               // console.log(this.positionX);
+               // console.log(this.positionY);
+          })
      }
 }
 

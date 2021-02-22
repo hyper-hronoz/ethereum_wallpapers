@@ -65,11 +65,17 @@ var Main = /** @class */ (function () {
         this.shadowProperties = "0px 0px 16px";
         // this.backgroundColor = "#111E2E";
         this.backgroundColor = "rgb(17,30,46)";
-        this.backgroundChartColor = "rgb(0,211,255, 0.1)";
+        this.backgroundChartColor = "rgb(0,211,255, 0.04)";
+        this.lineShadow = {
+            shadowOffsetX: 0,
+            shadowOffsetY: 0,
+            shadowBlur: 16,
+            shadowColor: "#00D3FF"
+        };
         this.currensyId = "ripple";
         this.vsCurrensy = "usd";
-        this.from = 1613422800;
-        this.to = 1613672582;
+        this.from = 1392577232;
+        this.to = 1422577232;
     }
     Main.prototype.startApplication = function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -79,7 +85,7 @@ var Main = /** @class */ (function () {
                     case 0: return [4 /*yield*/, new DrawCanvas()];
                     case 1:
                         drawCanvas = _a.sent();
-                        return [4 /*yield*/, new Transformdata().transform()];
+                        return [4 /*yield*/, new TransformData().transform()];
                     case 2:
                         chartData = _a.sent();
                         return [4 /*yield*/, new Chart(chartData).draw()];
@@ -108,12 +114,12 @@ var DrawCanvas = /** @class */ (function (_super) {
     return DrawCanvas;
 }(Main));
 // transforming http response
-var Transformdata = /** @class */ (function (_super) {
-    __extends(Transformdata, _super);
-    function Transformdata() {
+var TransformData = /** @class */ (function (_super) {
+    __extends(TransformData, _super);
+    function TransformData() {
         return _super.call(this) || this;
     }
-    Transformdata.prototype.transform = function () {
+    TransformData.prototype.transform = function () {
         return __awaiter(this, void 0, void 0, function () {
             var query, data, chartData, prices, pricesLength, i, timestamp, chartDataItem;
             return __generator(this, function (_a) {
@@ -134,13 +140,12 @@ var Transformdata = /** @class */ (function (_super) {
                             };
                             chartData[i] = chartDataItem;
                         }
-                        // console.log(chartData);
                         return [2 /*return*/, chartData];
                 }
             });
         });
     };
-    return Transformdata;
+    return TransformData;
 }(Main));
 // drawing chart
 var Chart = /** @class */ (function (_super) {
@@ -151,13 +156,25 @@ var Chart = /** @class */ (function (_super) {
         _this.timestampMargin = _this.canvasWidth / Object.keys(_this.chartData).length;
         _this.valueMargin = _this.canvasHeight / Object.keys(_this.chartData).length;
         _this.chartDataLength = Object.keys(_this.chartData).length;
+        _this.minimalValue = 999999999999999999999999999999999999999999999999999999999999;
+        _this.maximalValue = 0;
+        for (var i = 0; i < _this.chartDataLength; i++) {
+            if (_this.chartData[i].value > _this.maximalValue) {
+                _this.maximalValue = _this.chartData[i].value;
+            }
+            if (_this.chartData[i].value < _this.minimalValue) {
+                _this.minimalValue = _this.chartData[i].value;
+            }
+        }
         return _this;
     }
     Chart.prototype.draw = function () {
+        console.log(this.valueMargin);
         var grid = new Grid(this.chartData, this.vsCurrensy, this.from, this.to);
         grid.draw();
         var graph = new Graph(this.chartData);
         graph.draw();
+        var cursor = new Cursor(this.chartData).watch();
     };
     return Chart;
 }(Main));
@@ -172,25 +189,25 @@ var Grid = /** @class */ (function (_super) {
         return _this;
     }
     Grid.prototype.draw = function () {
-        // console.log(this.chartData);
-        for (var i = 0; i < this.chartDataLength; i++) {
-            // vertival
-            this.ctx.beginPath();
-            this.ctx.moveTo(i * this.timestampMargin, 0);
-            this.ctx.lineTo(i * this.timestampMargin, this.canvasHeight);
-            this.ctx.strokeStyle = this.gridColor;
-            this.ctx.lineWidth = this.gridThickness;
-            this.ctx.fillText(this.chartData[i].timestamp, i * this.timestampMargin, this.canvasHeight - 30);
-            this.ctx.stroke();
-            // horizontal
-            this.ctx.beginPath();
-            this.ctx.moveTo(0, this.valueMargin * i);
-            this.ctx.lineTo(this.canvasWidth, this.valueMargin * i);
-            this.ctx.strokeStyle = this.gridColor;
-            this.ctx.lineWidth = this.gridThickness;
-            this.ctx.fillText(this.chartData[i].value, 20, i * this.valueMargin);
-            this.ctx.stroke();
-        }
+        console.log("minimal value: " + this.minimalValue + "; maximal value: " + this.maximalValue);
+        // for (let i = 0; i < this.chartDataLength; i++) {
+        //      // vertival
+        //      this.ctx.beginPath();
+        //      this.ctx.moveTo(i * this.timestampMargin, 0);   
+        //      this.ctx.lineTo(i * this.timestampMargin, this.canvasHeight);  
+        //      this.ctx.strokeStyle = this.gridColor;
+        //      this.ctx.lineWidth = this.gridThickness;
+        //      this.ctx.fillText(this.chartData[i].timestamp, i * this.timestampMargin, this.canvasHeight - 30);
+        //      this.ctx.stroke();       
+        //      // horizontal
+        //      this.ctx.beginPath();
+        //      this.ctx.moveTo(0, this.valueMargin * i);   
+        //      this.ctx.lineTo(this.canvasWidth, this.valueMargin * i);  
+        //      this.ctx.strokeStyle = this.gridColor;
+        //      this.ctx.lineWidth = this.gridThickness;
+        //      this.ctx.fillText(this.chartData[i].value, 20 , i * this.valueMargin);
+        //      this.ctx.stroke();       
+        // }
     };
     return Grid;
 }(Chart));
@@ -210,20 +227,31 @@ var Graph = /** @class */ (function (_super) {
             }
             var coordinate_1 = {
                 x: i * this.timestampMargin,
-                y: (this.chartData[i].value * 100) * this.valueMargin
+                y: this.canvasHeight - (this.chartData[i].value) / (this.maximalValue) * (this.canvasHeight),
             };
             var coordinate_2 = {
                 x: (i - 1) * this.timestampMargin,
-                y: (this.chartData[i - 1].value * 100) * this.valueMargin
+                y: this.canvasHeight - (this.chartData[i - 1].value) / (this.maximalValue) * (this.canvasHeight),
             };
             var coordinates = {
                 0: coordinate_1,
                 1: coordinate_2
             };
+            console.log((this.chartData[i].value) / (this.maximalValue));
+            // lines 
+            this.ctx.shadowBlur = this.lineShadow.shadowBlur;
+            ;
+            this.ctx.shadowOffsetX = this.lineShadow.shadowOffsetX;
+            this.ctx.shadowOffsetY = this.lineShadow.shadowOffsetY;
+            this.ctx.shadowColor = this.lineShadow.shadowColor;
             this.ctx.moveTo(coordinates[0].x, coordinates[0].y);
+            this.ctx.lineWidth = 1.4;
+            this.ctx.translate(0, 0);
+            this.ctx.lineCap = "round";
             this.ctx.lineTo(coordinates[1].x, coordinates[1].y);
             this.ctx.strokeStyle = this.lineColor;
             this.ctx.stroke();
+            // background
             this.drawBackGround(coordinates);
         }
     };
@@ -232,13 +260,33 @@ var Graph = /** @class */ (function (_super) {
         this.ctx.beginPath();
         this.ctx.moveTo(coordinates[0].x, coordinates[0].y);
         this.ctx.lineTo(coordinates[1].x, coordinates[1].y);
-        this.ctx.lineTo(coordinates[1].x, 0);
-        this.ctx.lineTo(coordinates[0].x, 0);
+        this.ctx.lineTo(coordinates[1].x, this.canvasHeight);
+        this.ctx.lineTo(coordinates[0].x, this.canvasHeight);
         this.ctx.lineTo(coordinates[0].x, coordinates[0].y);
         this.ctx.fillStyle = this.backgroundChartColor;
         this.ctx.fill();
     };
     return Graph;
+}(Chart));
+var Cursor = /** @class */ (function (_super) {
+    __extends(Cursor, _super);
+    function Cursor(chartData) {
+        var _this = _super.call(this, chartData) || this;
+        _this.chartData = chartData;
+        _this.positionX = -200;
+        _this.positionY = -200;
+        return _this;
+    }
+    Cursor.prototype.watch = function () {
+        var _this = this;
+        this.canvas.addEventListener("mousemove", function (event) {
+            _this.positionX = event.offsetX;
+            _this.positionY = event.offsetY;
+            // console.log(this.positionX);
+            // console.log(this.positionY);
+        });
+    };
+    return Cursor;
 }(Chart));
 // http request to API coigeeko
 var HTTP = /** @class */ (function () {
