@@ -74,7 +74,7 @@ var Main = /** @class */ (function () {
         };
         this.currensyId = "ripple";
         this.vsCurrensy = "usd";
-        this.from = 1392577232;
+        this.from = 1412577232;
         this.to = 1422577232;
     }
     Main.prototype.startApplication = function () {
@@ -190,24 +190,79 @@ var Grid = /** @class */ (function (_super) {
     }
     Grid.prototype.draw = function () {
         console.log("minimal value: " + this.minimalValue + "; maximal value: " + this.maximalValue);
-        // for (let i = 0; i < this.chartDataLength; i++) {
-        //      // vertival
-        //      this.ctx.beginPath();
-        //      this.ctx.moveTo(i * this.timestampMargin, 0);   
-        //      this.ctx.lineTo(i * this.timestampMargin, this.canvasHeight);  
-        //      this.ctx.strokeStyle = this.gridColor;
-        //      this.ctx.lineWidth = this.gridThickness;
-        //      this.ctx.fillText(this.chartData[i].timestamp, i * this.timestampMargin, this.canvasHeight - 30);
-        //      this.ctx.stroke();       
-        //      // horizontal
-        //      this.ctx.beginPath();
-        //      this.ctx.moveTo(0, this.valueMargin * i);   
-        //      this.ctx.lineTo(this.canvasWidth, this.valueMargin * i);  
-        //      this.ctx.strokeStyle = this.gridColor;
-        //      this.ctx.lineWidth = this.gridThickness;
-        //      this.ctx.fillText(this.chartData[i].value, 20 , i * this.valueMargin);
-        //      this.ctx.stroke();       
-        // }
+        var v = 0;
+        for (var i = 0; i < this.chartDataLength; i++) {
+            v += this.chartData[i].value;
+        }
+        var number = (this.maximalValue * .1);
+        console.log(number);
+        var padding = 0;
+        if (number > 1000000000) {
+            padding = Math.ceil(number);
+        }
+        else if (number > 100000000) {
+            padding = Math.ceil(number);
+        }
+        else if (number > 1000000) {
+            padding = Math.ceil(number);
+        }
+        else if (number > 100000) {
+            padding = Math.ceil(number);
+        }
+        else if (number > 10000) {
+            padding = Math.ceil(number);
+        }
+        else if (number > 1000) {
+            padding = Math.ceil(number);
+        }
+        else if (number > 100) {
+            padding = Math.ceil(number);
+        }
+        else if (number > 10) {
+            padding = Math.ceil(number);
+        }
+        else if (number > 1) {
+            padding = number;
+        }
+        else if (number > .1) {
+            padding = +number.toFixed(1);
+        }
+        else if (number > .01) {
+            padding = +number.toFixed(2);
+        }
+        else if (number > .001) {
+            padding = +number.toFixed(3);
+        }
+        else if (number > .0001) {
+            padding = +number.toFixed(4);
+            console.log("it works");
+        }
+        else if (number > .00001) {
+            padding = +number.toFixed(5);
+        }
+        else {
+            throw console.error("Бляяяяяяяяяяяяяяяяяяяяяяять");
+        }
+        for (var i = 0; i < Math.floor(this.canvasHeight / (padding / this.maximalValue)); i++) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(0, this.canvasHeight - (padding * i) / (this.maximalValue) * (this.canvasHeight - (this.minimalValue / this.maximalValue * this.canvasHeight)));
+            this.ctx.lineTo(this.canvasWidth, this.canvasHeight - (padding * i) / (this.maximalValue) * (this.canvasHeight - (this.minimalValue / this.maximalValue * this.canvasHeight)));
+            this.ctx.strokeStyle = this.gridColor;
+            this.ctx.fillText((padding * i).toFixed(4), 10, this.canvasHeight - (padding * i) / (this.maximalValue) * (this.canvasHeight - (this.minimalValue / this.maximalValue * this.canvasHeight)));
+            this.ctx.stroke();
+        }
+        // this.ctx.beginPath();
+        // this.ctx.moveTo(0, this.canvasHeight - (this.minimalValue) / (this.maximalValue) * (this.canvasHeight - (this.minimalValue / this.maximalValue * this.canvasHeight)));
+        // this.ctx.lineTo(this.canvasWidth, this.canvasHeight - (this.minimalValue) / (this.maximalValue) * (this.canvasHeight - (this.minimalValue / this.maximalValue * this.canvasHeight)));
+        // this.ctx.strokeStyle = this.gridColor;
+        // this.ctx.fillText(this.minimalValue, 10, this.canvasHeight - (this.minimalValue) / (this.maximalValue) * (this.canvasHeight - (this.minimalValue / this.maximalValue * this.canvasHeight)));
+        // this.ctx.stroke();
+        // this.ctx.beginPath();
+        // this.ctx.moveTo(0, this.canvasHeight - (this.maximalValue) / (this.maximalValue) * (this.canvasHeight - (this.minimalValue / this.maximalValue * this.canvasHeight)));
+        // this.ctx.lineTo(this.canvasWidth, this.canvasHeight - (this.maximalValue) / (this.maximalValue) * (this.canvasHeight - (this.minimalValue / this.maximalValue * this.canvasHeight)));
+        // this.ctx.strokeStyle = this.gridColor;
+        // this.ctx.fillText(this.maximalValue, 10, this.canvasHeight - (this.maximalValue) / (this.maximalValue) * (this.canvasHeight - (this.minimalValue / this.maximalValue * this.canvasHeight)));
+        // this.ctx.stroke();
     };
     return Grid;
 }(Chart));
@@ -217,27 +272,24 @@ var Graph = /** @class */ (function (_super) {
     function Graph(chartData) {
         var _this = _super.call(this, chartData) || this;
         _this.chartData = chartData;
+        _this.drawBackGround();
         return _this;
     }
     Graph.prototype.draw = function () {
-        for (var i = 0; i < this.chartDataLength; i++) {
+        for (var i = 1; i < this.chartDataLength; i++) {
             this.ctx.beginPath();
-            if (i == 0) {
-                continue;
-            }
             var coordinate_1 = {
                 x: i * this.timestampMargin,
-                y: this.canvasHeight - (this.chartData[i].value) / (this.maximalValue) * (this.canvasHeight),
+                y: this.canvasHeight - (this.chartData[i].value) / (this.maximalValue) * (this.canvasHeight - (this.minimalValue / this.maximalValue * this.canvasHeight)),
             };
             var coordinate_2 = {
                 x: (i - 1) * this.timestampMargin,
-                y: this.canvasHeight - (this.chartData[i - 1].value) / (this.maximalValue) * (this.canvasHeight),
+                y: this.canvasHeight - (this.chartData[i - 1].value) / (this.maximalValue) * (this.canvasHeight - (this.minimalValue / this.maximalValue * this.canvasHeight)),
             };
             var coordinates = {
                 0: coordinate_1,
                 1: coordinate_2
             };
-            console.log((this.chartData[i].value) / (this.maximalValue));
             // lines 
             this.ctx.shadowBlur = this.lineShadow.shadowBlur;
             ;
@@ -250,19 +302,30 @@ var Graph = /** @class */ (function (_super) {
             this.ctx.lineCap = "round";
             this.ctx.lineTo(coordinates[1].x, coordinates[1].y);
             this.ctx.strokeStyle = this.lineColor;
+            this.ctx.closePath();
             this.ctx.stroke();
-            // background
-            this.drawBackGround(coordinates);
         }
     };
-    // dtaw background in chart
-    Graph.prototype.drawBackGround = function (coordinates) {
+    // background
+    Graph.prototype.drawBackGround = function () {
         this.ctx.beginPath();
-        this.ctx.moveTo(coordinates[0].x, coordinates[0].y);
-        this.ctx.lineTo(coordinates[1].x, coordinates[1].y);
-        this.ctx.lineTo(coordinates[1].x, this.canvasHeight);
-        this.ctx.lineTo(coordinates[0].x, this.canvasHeight);
-        this.ctx.lineTo(coordinates[0].x, coordinates[0].y);
+        var coordinate_1 = {
+            x: 0,
+            y: this.canvasHeight - (this.chartData[1].value) / (this.maximalValue) * (this.canvasHeight),
+        };
+        // this.ctx.moveTo(coordinate_1.x, coordinate_1.y);
+        this.ctx.lineTo(coordinate_1.x, coordinate_1.y);
+        for (var i = 1; i < this.chartDataLength; i++) {
+            var coordinate_2 = {
+                x: (i - 1) * this.timestampMargin,
+                y: this.canvasHeight - (this.chartData[i - 1].value) / (this.maximalValue) * (this.canvasHeight - (this.minimalValue / this.maximalValue * this.canvasHeight)),
+            };
+            // lines 
+            this.ctx.lineTo(coordinate_2.x, coordinate_2.y);
+        }
+        this.ctx.lineTo((this.chartDataLength - 1) * this.timestampMargin, this.canvasHeight - (this.chartData[this.chartDataLength - 1].value) / (this.maximalValue) * (this.canvasHeight - (this.minimalValue / this.maximalValue * this.canvasHeight)));
+        this.ctx.lineTo((this.chartDataLength - 1) * this.timestampMargin, this.canvasHeight);
+        this.ctx.lineTo(0, this.canvasHeight);
         this.ctx.fillStyle = this.backgroundChartColor;
         this.ctx.fill();
     };

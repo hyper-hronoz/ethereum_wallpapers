@@ -48,7 +48,7 @@ class Main {
 
           this.currensyId = "ripple";
           this.vsCurrensy = "usd";
-          this.from = 1392577232;
+          this.from = 1412577232;
           this.to = 1422577232;
 
      }
@@ -181,29 +181,74 @@ class Grid extends Chart implements DrawGrid {
      draw(): void {
 
           console.log(`minimal value: ${this.minimalValue}; maximal value: ${this.maximalValue}`);
+
+          let v: number = 0; for (let i = 0; i < this.chartDataLength; i++) {
+               v += this.chartData[i].value;
+          }
+
+          const number: number = (this.maximalValue * .1);
+
+          console.log(number);
           
+          let padding = 0;
 
-          // for (let i = 0; i < this.chartDataLength; i++) {
-
-
-          //      // vertival
-          //      this.ctx.beginPath();
-          //      this.ctx.moveTo(i * this.timestampMargin, 0);   
-          //      this.ctx.lineTo(i * this.timestampMargin, this.canvasHeight);  
-          //      this.ctx.strokeStyle = this.gridColor;
-          //      this.ctx.lineWidth = this.gridThickness;
-          //      this.ctx.fillText(this.chartData[i].timestamp, i * this.timestampMargin, this.canvasHeight - 30);
-          //      this.ctx.stroke();       
-
-          //      // horizontal
-          //      this.ctx.beginPath();
-          //      this.ctx.moveTo(0, this.valueMargin * i);   
-          //      this.ctx.lineTo(this.canvasWidth, this.valueMargin * i);  
-          //      this.ctx.strokeStyle = this.gridColor;
-          //      this.ctx.lineWidth = this.gridThickness;
-          //      this.ctx.fillText(this.chartData[i].value, 20 , i * this.valueMargin);
-          //      this.ctx.stroke();       
-          // }
+          if (number > 1000000000) {
+               padding = Math.ceil(number);
+          } else if (number > 100000000) {
+               padding = Math.ceil(number);
+          } else if (number > 1000000) {
+               padding = Math.ceil(number);
+          } else if (number > 100000) {
+               padding = Math.ceil(number);
+          } else if (number > 10000) {
+               padding = Math.ceil(number);
+          } else if (number > 1000) {
+               padding = Math.ceil(number);
+          } else if (number > 100) {
+               padding = Math.ceil(number);
+          } else if (number > 10) {
+               padding = Math.ceil(number);
+          } else if (number > 1) {
+               padding = number
+          } else if (number > .1) {
+               padding = +number.toFixed(1);
+          } else if (number > .01) {
+               padding = +number.toFixed(2);
+          } else if (number > .001) {
+               padding = +number.toFixed(3);
+          } else if (number > .0001) {
+               padding = +number.toFixed(4);
+               console.log("it works");
+               
+          } else if (number > .00001) {
+               padding = +number.toFixed(5);
+          } else {
+               throw console.error("Бляяяяяяяяяяяяяяяяяяяяяяять");
+          }
+           
+          for (let i = 0; i < Math.floor(this.canvasHeight / (padding / this.maximalValue)); i++) {
+               this.ctx.beginPath();
+               this.ctx.moveTo(0, this.canvasHeight - (padding * i) / (this.maximalValue) * (this.canvasHeight - (this.minimalValue / this.maximalValue * this.canvasHeight)));
+               this.ctx.lineTo(this.canvasWidth, this.canvasHeight - (padding * i) / (this.maximalValue) * (this.canvasHeight - (this.minimalValue / this.maximalValue * this.canvasHeight)));
+               this.ctx.strokeStyle = this.gridColor;
+               this.ctx.fillText((padding * i).toFixed(4), 10, this.canvasHeight - (padding * i) / (this.maximalValue) * (this.canvasHeight - (this.minimalValue / this.maximalValue * this.canvasHeight)));
+               this.ctx.stroke();
+          }
+          
+          
+          // this.ctx.beginPath();
+          // this.ctx.moveTo(0, this.canvasHeight - (this.minimalValue) / (this.maximalValue) * (this.canvasHeight - (this.minimalValue / this.maximalValue * this.canvasHeight)));
+          // this.ctx.lineTo(this.canvasWidth, this.canvasHeight - (this.minimalValue) / (this.maximalValue) * (this.canvasHeight - (this.minimalValue / this.maximalValue * this.canvasHeight)));
+          // this.ctx.strokeStyle = this.gridColor;
+          // this.ctx.fillText(this.minimalValue, 10, this.canvasHeight - (this.minimalValue) / (this.maximalValue) * (this.canvasHeight - (this.minimalValue / this.maximalValue * this.canvasHeight)));
+          // this.ctx.stroke();
+          
+          // this.ctx.beginPath();
+          // this.ctx.moveTo(0, this.canvasHeight - (this.maximalValue) / (this.maximalValue) * (this.canvasHeight - (this.minimalValue / this.maximalValue * this.canvasHeight)));
+          // this.ctx.lineTo(this.canvasWidth, this.canvasHeight - (this.maximalValue) / (this.maximalValue) * (this.canvasHeight - (this.minimalValue / this.maximalValue * this.canvasHeight)));
+          // this.ctx.strokeStyle = this.gridColor;
+          // this.ctx.fillText(this.maximalValue, 10, this.canvasHeight - (this.maximalValue) / (this.maximalValue) * (this.canvasHeight - (this.minimalValue / this.maximalValue * this.canvasHeight)));
+          // this.ctx.stroke();
      }
 }
 
@@ -225,33 +270,27 @@ class Graph extends Chart {
      constructor(chartData: ChartData) {
           super(chartData);
           this.chartData = chartData;
+          this.drawBackGround();
      }
 
      draw(): void {
-          for (let i = 0; i < this.chartDataLength; i++) {
+          for (let i = 1; i < this.chartDataLength; i++) {
                this.ctx.beginPath();
-
-               if (i == 0) {
-                    continue;
-               }
 
                const coordinate_1: Coordinate = {
                     x: i * this.timestampMargin,
-                    y: this.canvasHeight - (this.chartData[i].value) / (this.maximalValue) * (this.canvasHeight),
+                    y: this.canvasHeight - (this.chartData[i].value) / (this.maximalValue) * (this.canvasHeight - (this.minimalValue / this.maximalValue * this.canvasHeight)),
                }
 
                const coordinate_2: Coordinate = {
                     x: (i - 1) * this.timestampMargin,
-                    y: this.canvasHeight - (this.chartData[i - 1].value) / (this.maximalValue) * (this.canvasHeight),
+                    y: this.canvasHeight - (this.chartData[i - 1].value) / (this.maximalValue) * (this.canvasHeight - (this.minimalValue / this.maximalValue * this.canvasHeight)),
                }
 
                const coordinates: Coordinates = {
                     0: coordinate_1,
                     1: coordinate_2
                }
-
-               console.log((this.chartData[i].value) / (this.maximalValue));
-               
 
                // lines 
                this.ctx.shadowBlur = this.lineShadow.shadowBlur;;
@@ -264,21 +303,33 @@ class Graph extends Chart {
                this.ctx.lineCap = "round";
                this.ctx.lineTo(coordinates[1].x, coordinates[1].y);
                this.ctx.strokeStyle = this.lineColor;
+               this.ctx.closePath(); 
                this.ctx.stroke();
-
-               // background
-               this.drawBackGround(coordinates);
           }
      }
 
-     // dtaw background in chart
-     private drawBackGround(coordinates: Coordinates): void {
+     // background
+     private drawBackGround(): void {
           this.ctx.beginPath();
-          this.ctx.moveTo(coordinates[0].x, coordinates[0].y);
-          this.ctx.lineTo(coordinates[1].x, coordinates[1].y);
-          this.ctx.lineTo(coordinates[1].x, this.canvasHeight);
-          this.ctx.lineTo(coordinates[0].x, this.canvasHeight);
-          this.ctx.lineTo(coordinates[0].x, coordinates[0].y);
+          const coordinate_1: Coordinate = {
+               x: 0,
+               y: this.canvasHeight - (this.chartData[1].value) / (this.maximalValue) * (this.canvasHeight),
+          }
+          // this.ctx.moveTo(coordinate_1.x, coordinate_1.y);
+          this.ctx.lineTo(coordinate_1.x, coordinate_1.y)
+          for (let i = 1; i < this.chartDataLength; i++) {
+
+               const coordinate_2: Coordinate = {
+                    x: (i - 1) * this.timestampMargin,
+                    y: this.canvasHeight - (this.chartData[i - 1].value) / (this.maximalValue) * (this.canvasHeight - (this.minimalValue / this.maximalValue * this.canvasHeight)),
+               }
+
+               // lines 
+               this.ctx.lineTo(coordinate_2.x, coordinate_2.y);
+          }
+          this.ctx.lineTo((this.chartDataLength - 1) * this.timestampMargin, this.canvasHeight - (this.chartData[this.chartDataLength - 1].value) / (this.maximalValue) * (this.canvasHeight - (this.minimalValue / this.maximalValue * this.canvasHeight)));
+          this.ctx.lineTo((this.chartDataLength - 1) * this.timestampMargin, this.canvasHeight);
+          this.ctx.lineTo(0, this.canvasHeight); 
           this.ctx.fillStyle = this.backgroundChartColor;
           this.ctx.fill();
      }
@@ -305,6 +356,8 @@ class Cursor extends Chart implements Cursor {
           this.canvas.addEventListener("mousemove", (event: any) => {
                this.positionX = event.offsetX;
                this.positionY = event.offsetY;
+
+               
                // console.log(this.positionX);
                // console.log(this.positionY);
           })
