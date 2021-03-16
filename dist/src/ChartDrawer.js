@@ -21,12 +21,13 @@ class ChartDrawer extends Core {
             this.ctx.beginPath();
             const coordinate_1 = {
                 x: i * this.timestampMargin,
-                y: this.ctx.canvas.height - (this.chartData[i].value) / (this.maximalValue) * (this.ctx.canvas.height),
+                y: this.ctx.canvas.height - (this.chartData[i].value / this.maximalValue * this.ctx.canvas.height - this.minimalValue / this.maximalValue * this.ctx.canvas.height) * 1.2
             };
             const coordinate_2 = {
                 x: (i - 1) * this.timestampMargin,
-                y: this.ctx.canvas.height - (this.chartData[i - 1].value) / (this.maximalValue) * (this.ctx.canvas.height),
+                y: this.ctx.canvas.height - (this.chartData[i - 1].value / this.maximalValue * this.ctx.canvas.height - this.minimalValue / this.maximalValue * this.ctx.canvas.height) * 1.2
             };
+            console.log(((this.minimalValue / this.maximalValue)));
             const coordinates = {
                 0: coordinate_1,
                 1: coordinate_2
@@ -43,7 +44,7 @@ class ChartDrawer extends Core {
             this.ctx.closePath();
             this.ctx.stroke();
         }
-        this.drawBackGround();
+        // this.drawBackGround();
     }
     // background
     drawBackGround() {

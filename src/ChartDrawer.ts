@@ -46,13 +46,16 @@ class ChartDrawer extends Core {
 
                const coordinate_1: Coordinate = {
                     x: i * this.timestampMargin,
-                    y: this.ctx.canvas.height - (this.chartData[i].value) / (this.maximalValue) * (this.ctx.canvas.height),
+                    y: this.ctx.canvas.height - (this.chartData[i].value  / this.maximalValue * this.ctx.canvas.height - this.minimalValue / this.maximalValue * this.ctx.canvas.height) * 1.2
                }
 
                const coordinate_2: Coordinate = {
                     x: (i - 1) * this.timestampMargin,
-                    y: this.ctx.canvas.height - (this.chartData[i - 1].value) / (this.maximalValue) * (this.ctx.canvas.height),
+                    y: this.ctx.canvas.height - (this.chartData[i - 1].value  / this.maximalValue * this.ctx.canvas.height - this.minimalValue / this.maximalValue * this.ctx.canvas.height) * 1.2
                }
+
+               console.log(((this.minimalValue / this.maximalValue)));
+               
 
                const coordinates: Coordinates = {
                     0: coordinate_1,
@@ -73,7 +76,7 @@ class ChartDrawer extends Core {
                this.ctx.stroke();
           }
 
-          this.drawBackGround();
+          // this.drawBackGround();
      }
 
      // background
