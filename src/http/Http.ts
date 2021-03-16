@@ -1,5 +1,5 @@
-import HttpInterface from "./interfaces/HttpInterface";
-import OptionsInterface from "./interfaces/OptionsInterface";
+import HttpInterface from "../interfaces/HttpInterface";
+import OptionsInterface from "../interfaces/OptionsInterface";
 
 
 export default class Http implements HttpInterface {

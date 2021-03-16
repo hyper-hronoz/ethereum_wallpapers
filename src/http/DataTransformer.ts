@@ -1,24 +1,23 @@
-import Main from "./Main.js";
-import Http from "./Http.js";
-
-
 type ChartDataItem = { timestamp: string, value: number, }
 
 type ChartData = { [key: number]: ChartDataItem, }
 
 
 // transforming http response
-class TransformData extends Main {
-     constructor() {
-          super();
+export default class TransformData {
+
+    private data: any;
+
+     constructor(data: object) {
+         this.data = data;
      }
 
-     async transform(): Promise<ChartData> {
-          const query: Http = new Http(`https://api.coingecko.com/api/v3/coins/${this.currensyId}/market_chart/range?vs_currency=${this.vsCurrensy}&from=${this.from}&to=${this.to}`);
-          const data: any = await query.send();
+     transform(): ChartData {
 
+        console.log("Chart Data", this.data);
+        
           const chartData: ChartData = {};
-          const prices: Array<Array<number>>  = data.prices;
+          const prices: Array<Array<number>>  = this.data.prices;
 
           const pricesLength: number = prices.length;
 
