@@ -16,6 +16,7 @@ class Core {
     public static timestampMargin: number;
     public static maximalValue: any;
 
+
     constructor(context: any, chartData: ChartData) {
 
         this.ctx = context;

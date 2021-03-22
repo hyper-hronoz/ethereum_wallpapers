@@ -32,4 +32,3 @@ http.send()
         chart = new Chart(ctx, data);
     });
 });
-// const chart = new Chart("#canvas");

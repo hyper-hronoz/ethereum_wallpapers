@@ -44,6 +44,5 @@ http.send()
     
 })
 
-// const chart = new Chart("#canvas");
 
 
